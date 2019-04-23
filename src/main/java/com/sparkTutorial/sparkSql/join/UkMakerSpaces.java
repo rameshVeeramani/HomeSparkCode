@@ -27,10 +27,12 @@ public class UkMakerSpaces {
         System.out.println("=== Print 20 records of postcode table ===");
         postCode.show();
 
-        Dataset<Row> joined = makerSpace.join(postCode,
-                makerSpace.col("Postcode").startsWith(postCode.col("Postcode")), "left_outer");
+        Dataset<Row> joined = makerSpace
+                .join(postCode,
+                        makerSpace.col("Postcode").startsWith(postCode.col("Postcode")),
+                        "left_outer");
 
         System.out.println("=== Group by Region ===");
-        joined.groupBy("Region").count().show(200);
+        joined.groupBy("Region").count().sort(col("count").desc()).show(200);
     }
 }

@@ -17,10 +17,15 @@ public class StackOverFlowSurvey {
     public static void main(String[] args) throws Exception {
 
         Logger.getLogger("org").setLevel(Level.ERROR);
-        SparkSession session = SparkSession.builder().appName("StackOverFlowSurvey").master("local[1]").getOrCreate();
+        SparkSession session = SparkSession.builder().appName("StackOverFlowSurvey").master("local[9]").getOrCreate();
 
+
+        // you need a dataframe read... so uget it by session .read.
         DataFrameReader dataFrameReader = session.read();
 
+
+        // HEADER LINE INFER THE SCHEMA OF THE DATA SET.
+        // SO YOU CAN READ AN CSV FILE, OR YOU CAN READ FROM JDBC, JSON OR PARQUETT FILE .. Text file...
         Dataset<Row> responses = dataFrameReader.option("header","true").csv("in/2016-stack-overflow-survey-responses.csv");
 
         System.out.println("=== Print out schema ===");
@@ -30,12 +35,15 @@ public class StackOverFlowSurvey {
         responses.show(20);
 
         System.out.println("=== Print the so_region and self_identification columns of gender table ===");
+        // you can choose column using response.select(col("a"), col("xyz")).show()
         responses.select(col("so_region"),  col("self_identification")).show();
 
         System.out.println("=== Print records where the response is from Afghanistan ===");
+        //responses.select(col("abc").equalTo("Aff")).show();
         responses.filter(col("country").equalTo("Afghanistan")).show();
 
         System.out.println("=== Print the count of occupations ===");
+        //responses.groupBy(col("occupation")).count().show();
         RelationalGroupedDataset groupedDataset = responses.groupBy(col("occupation"));
         groupedDataset.count().show();
 

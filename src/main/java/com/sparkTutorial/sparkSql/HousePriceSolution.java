@@ -20,15 +20,18 @@ public class HousePriceSolution {
 
         Logger.getLogger("org").setLevel(Level.ERROR);
         SparkSession session = SparkSession.builder().appName("HousePriceSolution").master("local[1]").getOrCreate();
-
         Dataset<Row> realEstate = session.read().option("header", "true").csv("in/RealEstate.csv");
 
-        Dataset<Row> castedRealEstate = realEstate.withColumn(PRICE, col(PRICE).cast("long"))
-                                                  .withColumn(PRICE_SQ_FT, col(PRICE_SQ_FT).cast("long"));
 
+        Dataset<Row> castedRealEstate = realEstate.withColumn(PRICE, col(PRICE).cast("long"))
+                .withColumn(PRICE_SQ_FT, col(PRICE_SQ_FT).cast("long"));
         castedRealEstate.groupBy("Location")
-                        .agg(avg(PRICE_SQ_FT), max(PRICE))
-                        .orderBy(col("avg(" + PRICE_SQ_FT + ")").desc())
-                        .show();
+                .agg(avg(PRICE_SQ_FT), max(PRICE))
+                .orderBy(col("avg(" + PRICE_SQ_FT + ")").asc())
+                .show();
+        castedRealEstate.groupBy("Location")
+                .agg(avg(PRICE_SQ_FT), max(PRICE))
+                .orderBy(col("avg(" + PRICE_SQ_FT + ")").desc())
+                .show();
     }
 }

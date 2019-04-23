@@ -1,8 +1,14 @@
 package com.sparkTutorial.sparkSql;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.spark.SparkConf;
+import org.apache.spark.SparkContext;
+import org.apache.spark.sql.*;
+
+import static org.apache.spark.sql.functions.*;
 
 public class HousePriceProblem {
-
         /* Create a Spark program to read the house data from in/RealEstate.csv,
            group by location, aggregate the average price per SQ Ft and max price, and sort by average price per SQ Ft.
 
@@ -38,4 +44,36 @@ public class HousePriceProblem {
         |.............................................|
 
          */
+
+        public static void main(String[] args) {
+
+                Logger.getLogger("org").setLevel(Level.ERROR);
+                SparkSession sparkSession = SparkSession.builder().appName("HomePrice").master("local[*]").getOrCreate();
+                //SparkSession sparkSession = SparkSession.builder().appName("StackOverFlowSurvey").master("local[9]").getOrCreate();
+                DataFrameReader dataFrameReader = sparkSession.read();
+                Dataset<Row> datasets = dataFrameReader.option("header", true).csv("in/RealEstate.csv");
+
+                datasets.printSchema();
+                RelationalGroupedDataset groupedByLocation = datasets.groupBy(col("Location"));
+                groupedByLocation.count().orderBy(col("count").desc()).show();
+                Dataset<Row> withInteger = datasets
+                        .withColumn("IPricePersqft", col("Price SQ Ft").cast("Double"))
+                        .withColumn("IPrice",col("Price").cast("Integer"));
+
+                datasets.show();
+                withInteger.show();
+
+
+
+
+                Dataset<Row> ppsqft  = withInteger.groupBy(col("Location")).agg( avg("IPricePersqft"),max("IPricePersqft"));
+                ppsqft.sort(col("avg(IPricePersqft)").desc()).show();
+
+                Dataset<Row> max =withInteger.groupBy(col("Location")).agg( avg("IPrice"),max("IPrice"));
+                max.sort(col("max(IPrice)").desc()).show();
+
+        }
+
+
+
 }
